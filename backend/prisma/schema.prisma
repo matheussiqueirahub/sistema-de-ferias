@@ -1,0 +1,101 @@
+// Prisma Schema for Férias System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SERVIDOR
+  GERENTE
+  SECRETARIO_EXECUTIVO
+  ADMIN
+}
+
+enum VacationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  email                String   @unique
+  password             String
+  role                 Role
+
+  // Hierarchy
+  managerId            Int?
+  manager              User?    @relation("ManagerEmployees", fields: [managerId], references: [id])
+  employeesManaged     User[]   @relation("ManagerEmployees")
+
+  executiveId          Int?
+  executive            User?    @relation("ExecutiveEmployees", fields: [executiveId], references: [id])
+  employeesExecutive   User[]   @relation("ExecutiveEmployees")
+
+  // Relations
+  requests             Ferias[]
+  approvals            ApprovalHistory[] @relation("ManagerApprovalHistory")
+  notifications        Notification[]
+
+  // Reverse relations for Ferias approver/executive
+  managedFerias        Ferias[] @relation("FeriasManager")
+  executiveFerias      Ferias[] @relation("FeriasExecutive")
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Ferias {
+  id          Int             @id @default(autoincrement())
+  servidorId  Int
+  servidor    User            @relation(fields: [servidorId], references: [id])
+
+  managerId   Int
+  manager     User            @relation("FeriasManager", fields: [managerId], references: [id])
+
+  executiveId Int
+  executive   User            @relation("FeriasExecutive", fields: [executiveId], references: [id])
+
+  inicio      DateTime
+  fim         DateTime
+  status      VacationStatus  @default(PENDING)
+  observation String?
+
+  createdAt   DateTime        @default(now())
+
+  history     ApprovalHistory[]
+
+  @@index([managerId])
+  @@index([executiveId])
+  @@index([servidorId])
+}
+
+model ApprovalHistory {
+  id         Int      @id @default(autoincrement())
+  feriasId   Int
+  ferias     Ferias   @relation(fields: [feriasId], references: [id])
+
+  managerId  Int
+  manager    User     @relation("ManagerApprovalHistory", fields: [managerId], references: [id])
+
+  approved   Boolean
+  observacao String?
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

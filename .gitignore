@@ -1,0 +1,18 @@
+# Node
+backend/node_modules/
+backend/dist/
+
+# Env
+backend/.env
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/*.sqlite
+backend/prisma/migrations/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Frontend assets (logo provided externally)
+frontend/assets/logo-jaboatao.png

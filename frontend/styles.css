@@ -1,0 +1,70 @@
+:root {
+  --azul: #1f62b0;          /* primária */
+  --azul-escuro: #143a73;   /* títulos/contraste */
+  --amarelo: #f2b318;       /* detalhe */
+  --verde: #2faa4a;         /* sucesso */
+  --cinza: #e6ecf5;
+  --texto: #1f2937;
+  --ok: #16a34a;
+  --no: #dc2626;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  color: var(--texto);
+  background: linear-gradient(180deg, #f7fbff, #f1f6ff);
+}
+
+.app-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 24px;
+  background: linear-gradient(90deg, var(--azul-escuro), var(--azul));
+  color: white;
+}
+.app-header img { height: 48px; width: auto; }
+.app-header h1 { margin: 0; font-size: 20px; letter-spacing: 0.5px; }
+
+.container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+.card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 6px 24px rgba(20,58,115,.08); margin-bottom: 16px; }
+.hidden { display: none; }
+.muted { color: #64748b; font-size: 0.9rem; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+input, textarea, select { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
+
+.btn { padding: 10px 14px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
+.btn-primary { background: var(--azul); color: white; }
+.btn-primary:hover { filter: brightness(0.95); }
+.btn-outline { background: white; border-color: var(--azul); color: var(--azul); }
+.btn-outline:hover { background: #eef4ff; }
+
+.table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.table th, .table td { padding: 8px 10px; border-bottom: 1px solid var(--cinza); text-align: left; }
+.badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge.pending { background: #fde68a; color: #92400e; }
+.badge.approved { background: #dcfce7; color: #166534; }
+.badge.rejected { background: #fee2e2; color: #991b1b; }
+
+.list { display: grid; gap: 10px; }
+.card-item { border: 1px solid var(--cinza); border-radius: 10px; padding: 12px; }
+.actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.notifications { list-style: none; padding: 0; margin: 0; }
+.notifications li { padding: 8px 10px; border-bottom: 1px solid var(--cinza); }
+
+.footer { text-align: center; color: #64748b; padding: 18px; }
+
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+/* Calendário */
+.calendar-wrapper { margin: 8px 0 12px; }
+#range { opacity: 0; height: 0; border: 0; padding: 0; }
+.flatpickr-calendar.inline { box-shadow: 0 6px 24px rgba(20,58,115,.08); border: 1px solid var(--cinza); border-radius: 12px; }
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: var(--azul); border-color: var(--azul); }
+.flatpickr-day.inRange { background: #e5efff; border-color: #e5efff; }
