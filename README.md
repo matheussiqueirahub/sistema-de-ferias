@@ -19,6 +19,9 @@ Aplicação completa para solicitação e gestão de férias de servidores:
 ## Configuração
 ```bash
 cd backend
+# instalar dependências
+npm install
+# copiar variáveis de ambiente
 copy .env.example .env  # Windows
 # ou: cp .env.example .env
 ```
@@ -64,4 +67,4 @@ A paleta utiliza tons de azul primário/escuro e detalhes em amarelo/verde.
 - Notificações: `GET /notifications`, `POST /notifications/:id/read`
 
 ---
-Se quiser, posso trocar o calendário por outro componente visual, adicionar e-mails de notificação e relatórios (CSV/PDF).
+Se quiser, posso adicionar envio de e-mail nas decisões e relatórios (CSV/PDF).
