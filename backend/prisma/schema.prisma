@@ -1,101 +1,175 @@
-// Prisma Schema for Férias System
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["sist_ferias"]
 }
 
-enum Role {
-  SERVIDOR
-  GERENTE
-  SECRETARIO_EXECUTIVO
-  ADMIN
+model cadastro {
+  MATRICULA       String       @id @db.VarChar(32)
+  SENHA           String       @db.VarChar(255)
+  NOME            String       @db.VarChar(255)
+  EMAIL           String       @db.VarChar(255)
+  ID_GERENCIA     Int
+  CPF             String?      @db.VarChar(255)
+  DATA_CRIACAO    DateTime?    @db.Timestamp(6)
+  ID_TIPO_USER    Int?
+  primeiro_acesso Boolean?     @default(true)
+  tipo_user       tipo_user?   @relation(fields: [ID_TIPO_USER], references: [ID_TIPO_USER], onDelete: NoAction, onUpdate: NoAction, map: "cadastro_fk_tipo_user")
+  funcionarios    funcionarios @relation(fields: [MATRICULA], references: [MATRICULA_F], onDelete: NoAction, onUpdate: NoAction, map: "cadastro_matricula_fkey")
+
+  @@map("cadastro")
+  @@schema("sist_ferias")
 }
 
-enum VacationStatus {
-  PENDING
-  APPROVED
-  REJECTED
+model gerencia {
+  SIGLA_GERENCIA String         @id @db.VarChar(255)
+  GERENCIA       String?        @db.VarChar(255)
+  ID_GERENCIA    Int?           @default(autoincrement())
+  ID_TIPO_SEC    Int?
+  funcionarios   funcionarios[]
+
+  @@map("gerencia")
+  @@schema("sist_ferias")
 }
 
-model User {
-  id                   Int      @id @default(autoincrement())
-  name                 String
-  email                String   @unique
-  password             String
-  role                 Role
+model cargos_funcionarios {
+  MATRICULA     String     @db.VarChar(32)
+  ID_TAB_CARGOS String     @db.VarChar(255)
+  ID_SECRETARIA Int
+  tab_cargos    tab_cargos @relation(fields: [ID_TAB_CARGOS, ID_SECRETARIA], references: [COD_CARGO, ID_SEC], onDelete: NoAction, onUpdate: NoAction, map: "cargos_funcionarios_id_tab_cargos_id_secretaria_fkey")
 
-  // Hierarchy
-  managerId            Int?
-  manager              User?    @relation("ManagerEmployees", fields: [managerId], references: [id])
-  employeesManaged     User[]   @relation("ManagerEmployees")
-
-  executiveId          Int?
-  executive            User?    @relation("ExecutiveEmployees", fields: [executiveId], references: [id])
-  employeesExecutive   User[]   @relation("ExecutiveEmployees")
-
-  // Relations
-  requests             Ferias[]
-  approvals            ApprovalHistory[] @relation("ManagerApprovalHistory")
-  notifications        Notification[]
-
-  // Reverse relations for Ferias approver/executive
-  managedFerias        Ferias[] @relation("FeriasManager")
-  executiveFerias      Ferias[] @relation("FeriasExecutive")
-
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  @@id([MATRICULA, ID_TAB_CARGOS, ID_SECRETARIA])
+  @@schema("sist_ferias")
 }
 
-model Ferias {
-  id          Int             @id @default(autoincrement())
-  servidorId  Int
-  servidor    User            @relation(fields: [servidorId], references: [id])
+model coordenacao {
+  SIGLA_COORDENACAO String  @id @db.VarChar(255)
+  COORDENAÇÃO     String? @map("COORDENAÇÃO") @db.VarChar(255)
+  ID_GERENCIA       Int?
 
-  managerId   Int
-  manager     User            @relation("FeriasManager", fields: [managerId], references: [id])
-
-  executiveId Int
-  executive   User            @relation("FeriasExecutive", fields: [executiveId], references: [id])
-
-  inicio      DateTime
-  fim         DateTime
-  status      VacationStatus  @default(PENDING)
-  observation String?
-
-  createdAt   DateTime        @default(now())
-
-  history     ApprovalHistory[]
-
-  @@index([managerId])
-  @@index([executiveId])
-  @@index([servidorId])
+  @@schema("sist_ferias")
 }
 
-model ApprovalHistory {
-  id         Int      @id @default(autoincrement())
-  feriasId   Int
-  ferias     Ferias   @relation(fields: [feriasId], references: [id])
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model funcionarios {
+  MATRICULA      String?         @db.VarChar(255)
+  MATRICULA_F    String          @id @db.VarChar(32)
+  NOME           String?         @db.VarChar(255)
+  DATA_ADMISSAO  DateTime?       @db.Date
+  TELEFONE       String?         @db.VarChar(255)
+  EMAIL          String?         @db.VarChar(255)
+  ENDERECO       String?         @db.VarChar(255)
+  STATUS         String?         @db.VarChar(255)
+  ID_SEC         Int?
+  SIGLA_GERENCIA String?         @db.VarChar(255)
+  TIPO_CARGO     String?         @db.VarChar(255)
+  cadastro       cadastro?
+  gerencia       gerencia?       @relation(fields: [SIGLA_GERENCIA], references: [SIGLA_GERENCIA], onDelete: NoAction, onUpdate: NoAction)
+  status_usuario status_usuario? @relation(fields: [STATUS], references: [DESC_STATUS], onDelete: NoAction, onUpdate: NoAction)
+  periodos       periodos[]
 
-  managerId  Int
-  manager    User     @relation("ManagerApprovalHistory", fields: [managerId], references: [id])
-
-  approved   Boolean
-  observacao String?
-  createdAt  DateTime @default(now())
+  @@map("funcionarios")
+  @@schema("sist_ferias")
 }
 
-model Notification {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  message   String
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+model secretaria {
+  ID_SECRETARIA   Int               @id
+  DESC_SECRETARIA String?           @db.VarChar(255)
+  tipo_secretaria tipo_secretaria[]
 
-  @@index([userId])
+  @@schema("sist_ferias")
+}
+
+model tab_cargos {
+  COD_CARGO           String                @db.VarChar(255)
+  DESC_CARGO          String?               @db.VarChar(255)
+  TIPO_CARGO          String?               @db.VarChar(255)
+  ID_SEC              Int
+  cargos_funcionarios cargos_funcionarios[]
+
+  @@id([COD_CARGO, ID_SEC])
+  @@map("tab_cargos")
+  @@schema("sist_ferias")
+}
+
+model tipo_ferias {
+  ID_FERIAS   Int     @id
+  DESC_FERIAS String? @db.VarChar(255)
+
+  @@schema("sist_ferias")
+}
+
+model tipo_secretaria {
+  ID_TIPO_SEC                Int         @id @default(autoincrement())
+  SIGLA_SECRETARIA_EXECUTIVA String?     @db.VarChar(255)
+  COD_SECRETARIA_EXECUTIVA   String?     @db.VarChar(255)
+  SECRETARIA_EXECUTIVA       String?     @db.VarChar(255)
+  SIGLA_SECRETARIA_MUNICIPAL String?     @db.VarChar(255)
+  TIPO_SECRETARIA            String?     @db.VarChar
+  ID_SECRETARIA              Int?
+  secretaria                 secretaria? @relation(fields: [ID_SECRETARIA], references: [ID_SECRETARIA], onDelete: NoAction, onUpdate: NoAction, map: "tipo_secretaria_fk_secretaria")
+
+  @@schema("sist_ferias")
+}
+
+model tipo_user {
+  ID_TIPO_USER Int        @id
+  TIPO_USER    String?    @db.VarChar(255)
+  cadastro     cadastro[]
+
+  @@schema("sist_ferias")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model ferias_gozo {
+  MES_INICIO DateTime @db.Date
+  SALDO      String   @db.VarChar(255)
+  TIPO       String   @db.VarChar(255)
+  PERCEPCAO  String   @db.VarChar(255)
+  ANO        String   @db.VarChar(255)
+  ID         Int
+  MES_FIM    DateTime @db.Date
+  periodos   periodos @relation(fields: [ID], references: [ID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([ID, MES_INICIO])
+  @@map("ferias_gozo")
+  @@schema("sist_ferias")
+}
+
+model periodos {
+  MATRICULA_SEM_PONTO          String         @db.VarChar(32)
+  PERIODO_AQUISITIVO_EM_ABERTO String         @db.VarChar(255)
+  TIPO                         Int?
+  SALDO_                       Int?           @map("SALDO ")
+  PERCEPCAO                    String?        @db.VarChar(255)
+  ID                           Int            @id @default(autoincrement())
+  STATUS                       Int?           @db.SmallInt
+  ferias_gozo                  ferias_gozo[]
+  status_ferias                status_ferias? @relation(fields: [STATUS], references: [ID_STATUS], onDelete: NoAction, onUpdate: NoAction)
+  funcionarios                 funcionarios   @relation(fields: [MATRICULA_SEM_PONTO], references: [MATRICULA_F], onDelete: NoAction, onUpdate: NoAction, map: "periodos_matricula_sem_ponto_fkey")
+
+  @@unique([MATRICULA_SEM_PONTO, PERIODO_AQUISITIVO_EM_ABERTO], map: "ferias_matricula_sem_ponto_periodo_aquisitivo_em_aberto_key")
+  @@map("periodos")
+  @@schema("sist_ferias")
+}
+
+model status_ferias {
+  ID_STATUS Int        @id(map: "status_pkey")
+  STATUS    String?    @db.VarChar(255)
+  periodos  periodos[]
+
+  @@schema("sist_ferias")
+}
+
+model status_usuario {
+  DESC_STATUS  String         @id(map: "STATUS USUARIO_pkey") @db.VarChar(255)
+  ID_STATUS    Int
+  funcionarios funcionarios[]
+
+  @@schema("sist_ferias")
 }
